@@ -1,3 +1,6 @@
 from django.shortcuts import render
+from django.shortcuts import HttpResponse
 
-# Create your views here.
+
+def main_page(request):
+    return render(request, 'articles/main_page.html')
