@@ -3,7 +3,6 @@ from django.core.validators import ValidationError
 import datetime
 import re
 
-
 phone_number_validator = RegexValidator(regex=r'^(\s*)?(\+)?([- _():=+]?\d[- _():=+]?){10,14}(\s*)?$')
 
 
@@ -16,7 +15,10 @@ def date_of_birth_validator(value):
                        r'[0-8])(\/|-|\.)(?:(?:0?[1-9])|(?:1[0-2]))\4(?:(?:1[6-9]|[2-9]\d)?\d{2})$')
     result = re.fullmatch(regex, value)
     if result:
-        result_to_str = f'{result[0][:2]}.{result[0][3:5]}.{result[0][6:10]}'
+        try:
+            result_to_str = f'{result[0][:2]}.{result[0][3:5]}.{result[0][6:10]}'
+        except BaseException:
+            raise ValidationError('Невідома помилка, перевірте, будь-ласка, правильність введених даних')
         min_date = datetime.datetime(day=1, month=1, year=1900)
         max_date = datetime.datetime.now()
         user_date = datetime.datetime.strptime(result_to_str, "%d.%m.%Y")
