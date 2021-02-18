@@ -1,8 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django_extensions.db.fields import AutoSlugField
-from .utilities import phone_number_validator
-from .utilities import date_of_birth_validator
+from .validators import phone_number_validator
+from .validators import date_of_birth_validator
 
 
 class AdvancedUser(AbstractUser):
