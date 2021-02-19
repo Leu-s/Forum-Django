@@ -1,0 +1,20 @@
+{% extends 'base/base.html' %}
+
+{% load bootstrap4 %}
+
+{% block title %}Авторизація{% endblock %}
+
+{% block content %}
+    <div class="container-fluid justify-content-center">
+        {% if user.is_authenticated %}
+            <p>{{ user.username }}, Ви вже увійшли в свій аккаунт.</p>
+        {% else %}
+            <form method="post">
+                {% csrf_token %}
+                {% bootstrap_form form layout="horizontal" %}
+                <input type="hidden" name="next" value="{% url 'main:main_page' %}">
+                {% buttons submit='Увійти' %}{% endbuttons %}
+            </form>
+        {% endif %}
+    </div>
+{% endblock %}

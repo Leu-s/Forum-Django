@@ -22,39 +22,51 @@
                         {% if user.is_authenticated %}
                             <h1>Image</h1>
                             <ul class="col nav-link">
-                                <a class="nav-link" href="#">Имя пользователя</a>
-                                <a class="nav-link" href="#">Рейтинг: +246</a>
+                                <a class="nav-link" href="#">
+                                    {% if user.first_name and user.last_name %}
+                                        {{ user.first_name }} {{ user.last_name }} ({{user.username}})
+                                    {% else %}
+                                        {{ user.username }}
+                                    {% endif %}
+
+
+
+
+                                </a>
+                                <a class="nav-link" href="#">Рейтинг: *В розробці*</a>
                                 <li class="nav-item dropdown" style="list-style-type: none">
-                                    <a class="nav-link dropdown-toggle" href="#"
-                                    role="button"
-                                    data-toggle="dropdown"
-                                    aria-expanded="false"
-                                    aria-haspopup="true">
-                                        Профиль
+                                    <a class="nav-link dropdown-toggle"
+                                       href="#"
+                                        role="button"
+                                        data-toggle="dropdown"
+                                        aria-expanded="false"
+                                        aria-haspopup="true">
+                                        Профіль
                                     </a>
                                     <div class="dropdown-menu">
                                         <a class="dropdown-item" href="#">
-                                            Личные сообщения
+                                            Особисті повідомлення
                                         </a>
                                         <a class="dropdown-item" href="#">
-                                            Мои статьи
+                                            Мої статьї
                                         </a>
                                         <a class="dropdown-item" href="#">
-                                            Мои комментарии
+                                            Мої коментарії
                                         </a>
-                                        <a class="dropdown-item" href="#">
-                                            Личная информация
+                                        <a class="dropdown-item"
+                                           href="{% url 'main:user_personal_info' user.slug %}">
+                                            Особиста інформація
                                         </a>
                                         <div class="dropdown-divider"></div>
-                                        <a class="dropdown-item" href="#">
-                                            Выйти
+                                        <a class="dropdown-item" href="{% url 'main:user_logout' %}">
+                                            Вихід
                                         </a>
                                     </div>
                                 </li>
                             </ul>
                         {% else %}
-                            <a class="nav-link">Войти</a>
-                            <a class="nav-link">Зарегестрироваться</a>
+                            <a class="nav-link" href="{% url "main:user_login" %}">Увійти</a>
+                            <a class="nav-link">Зареєструватись</a>
                         {% endif %}
                     </div>
 
