@@ -5,7 +5,10 @@
 {% block title %}Особиста інформація {{ user.username }}{% endblock %}
 
 {% block content %}
-    <div class="container justify-content-start">
+
+    <div class="container">
+        <h4>Логін (нікнейм): {{ user.username }}</h4>
+        <hr>
         <form method="post">
             {% csrf_token %}
             {% bootstrap_form form layout='horizontal' %}

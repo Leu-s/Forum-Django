@@ -28,10 +28,6 @@
                                     {% else %}
                                         {{ user.username }}
                                     {% endif %}
-
-
-
-
                                 </a>
                                 <a class="nav-link" href="#">Рейтинг: *В розробці*</a>
                                 <li class="nav-item dropdown" style="list-style-type: none">
@@ -66,7 +62,7 @@
                             </ul>
                         {% else %}
                             <a class="nav-link" href="{% url "main:user_login" %}">Увійти</a>
-                            <a class="nav-link">Зареєструватись</a>
+                            <a class="nav-link" href="{% url "main:user_registration" %}">Зареєструватись</a>
                         {% endif %}
                     </div>
 
@@ -81,7 +77,7 @@
         <div class="row">
             <ul class="row nav border-top border-bottom">
                 {% if user.is_authenticated %}
-                    <a class="nav-link" href="#">Добавить статью</a>
+                    <a class="nav-link" href="#" style="margin-left: 30px">Добавить статью</a>
                 {% endif %}
                 <a  class="nav-link" href="{% url 'main:main_page' %}">Головна</a>
             </ul>
@@ -148,7 +144,7 @@
             </div>
 
         </div>
-        <footer class="mt-3 fixed-bottom border-top">
+        <footer class="mt-3">
             <div class="table">
                 <div class="row">
                     <div class="col">

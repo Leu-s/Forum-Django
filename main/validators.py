@@ -3,6 +3,7 @@ from django.core.validators import ValidationError
 import datetime
 import re
 
+
 phone_number_validator = RegexValidator(regex=r'^(\s*)?(\+)?([- _():=+]?\d[- _():=+]?){10,14}(\s*)?$')
 
 
@@ -34,13 +35,13 @@ def date_of_birth_validator(value):
 
 
 def username_validator(value):
-    regex = '^[a-zA-Z][a-zA-Z0-9_-]{6,24}$'
+    regex = '^[a-zA-Z0-9_]{3,24}$'
     check_value = re.fullmatch(regex, value)
     if check_value:
         return value
     else:
         raise ValidationError('Вимоги: від шести до двадцяти чотирьох символів (6-24).'
-                              ' Букви латинського алфавіту, цифри та символи -,_')
+                              ' Букви латинського алфавіту, цифри та символ _')
 
 
 
