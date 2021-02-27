@@ -1,5 +1,6 @@
 {% load static %}
 {% load bootstrap4 %}
+{% load thumbnail %}
 <!DOCTYPE html>
 <html lang="ru">
     <head>
@@ -20,8 +21,15 @@
                 <div class="row">
                     <div class="col nav">
                         {% if user.is_authenticated %}
-                            <h1>Image</h1>
+
                             <ul class="col nav-link">
+                                {% if user.user_image %}
+                                    <div id="avatar">
+                                        <img class="mr-3" src="{% thumbnail user.user_image 'avatar' %}" alt="" />
+                                {% else %}
+                                    <img src="{% static 'static/default.jpg'%}" alt="">
+                                    </div>
+                                {% endif %}
                                 <a class="nav-link" href="#">
                                     {% if user.first_name and user.last_name %}
                                         {{ user.first_name }} {{ user.last_name }} ({{user.username}})
@@ -32,7 +40,7 @@
                                 <a class="nav-link" href="#">Рейтинг: *В розробці*</a>
                                 <li class="nav-item dropdown" style="list-style-type: none">
                                     <a class="nav-link dropdown-toggle"
-                                       href="#"
+                                        href="#"
                                         role="button"
                                         data-toggle="dropdown"
                                         aria-expanded="false"
@@ -40,6 +48,9 @@
                                         Профіль
                                     </a>
                                     <div class="dropdown-menu">
+                                        <a class="dropdown-item" href="{% url 'main:user_profile' slug=user.slug %}">
+                                            Профіль
+                                        </a>
                                         <a class="dropdown-item" href="#">
                                             Особисті повідомлення
                                         </a>
@@ -51,7 +62,7 @@
                                         </a>
                                         <a class="dropdown-item"
                                            href="{% url 'main:user_personal_info' user.slug %}">
-                                            Особиста інформація
+                                            Редагувати профіль
                                         </a>
                                         <div class="dropdown-divider"></div>
                                         <a class="dropdown-item" href="{% url 'main:user_logout' %}">

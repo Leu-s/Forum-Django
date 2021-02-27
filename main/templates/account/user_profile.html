@@ -1,0 +1,13 @@
+{% extends 'base/base.html' %}
+{% load bootstrap4 %}
+{% block title %}{{ user.username }} - профіль - МійКрай{% endblock %}
+
+{% block content %}
+    <h1>Профіль користувача {{ user.username }}</h1>
+    {% if not user.is_activated %}
+        <form method="post">
+            {% csrf_token %}
+            <button class="btn-primary" type="submit" name="send_email">Надіслати лист активації</button>
+        </form>
+    {% endif %}
+{% endblock %}

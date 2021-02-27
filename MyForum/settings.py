@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
 from pathlib import Path
-
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'bootstrap4',
+    'easy_thumbnails',
+    'django_cleanup',
 
     'main.apps.MainConfig',
 ]
@@ -133,4 +135,30 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+
+# Base user model
 AUTH_USER_MODEL = 'main.AdvancedUser'
+
+
+# Media
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+
+
+# Thumbnail settings
+THUMBNAIL_BASEDIR = 'thumbnails'
+THUMBNAIL_ALIASES = {
+    '': {
+        'avatar': {
+            'size': (100, 100),
+            'crop': 'smart',
+            }
+    }
+}
+
+# Email settings
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'kramarenko98y@gmail.com'
+EMAIL_HOST_PASSWORD = '529984073Nazar'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True

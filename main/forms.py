@@ -3,6 +3,7 @@ from django.contrib.auth import password_validation
 from django.core.exceptions import ValidationError
 from .utilities import available_birth_years
 from .models import AdvancedUser
+from .models import user_registrated
 
 
 class UserRegistrationForm(forms.ModelForm):
@@ -55,8 +56,10 @@ class UserRegistrationForm(forms.ModelForm):
     def save(self, commit=True):
         user = super().save(commit=False)
         user.set_password(self.cleaned_data['password1'])
+        user.is_activated = False
         if commit:
             user.save()
+        user_registrated.send(UserRegistrationForm, instance=user)  # Send activation email
         return user
 
     class Meta:
@@ -70,6 +73,7 @@ class UserRegistrationForm(forms.ModelForm):
 
 
 class UserPersonalInformationForm(forms.ModelForm):
+
     class Meta:
         model = AdvancedUser
         fields = (
@@ -79,6 +83,7 @@ class UserPersonalInformationForm(forms.ModelForm):
             'phone_number',
             'village',
             'date_of_birth',
+            'user_image',
         )
 
         widgets = {

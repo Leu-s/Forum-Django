@@ -1,13 +1,29 @@
 from django.db import models
+from django.dispatch import Signal
 from django.contrib.auth.models import AbstractUser
 from django_extensions.db.fields import AutoSlugField
 from .validators import phone_number_validator
 from .validators import date_of_birth_validator
 from .validators import username_validator
+from .utilities import get_timestamp_path
+from .utilities import send_activation_notification
+
+user_registrated = Signal(providing_args=['instance'])
+
+
+def user_registrated_dispatcher(sender, **kwargs):
+    send_activation_notification(kwargs['instance'])
+
+
+user_registrated.connect(user_registrated_dispatcher)
 
 
 class AdvancedUser(AbstractUser):
     slug = AutoSlugField(populate_from='username')
+    user_image = models.ImageField(
+        blank=True,
+        upload_to=get_timestamp_path,
+        verbose_name='Фотография пользователя')
     username = models.CharField(
         max_length=24,
         unique=True,
@@ -45,11 +61,11 @@ class AdvancedUser(AbstractUser):
         validators=[date_of_birth_validator],
         verbose_name='Дата народження',
     )
-    is_active = models.BooleanField(
+    is_activated = models.BooleanField(
         default=False,
-        help_text='Підтвердіть свій аккаунт, перейшовши за посиланням,'
-                  ' яку було надіслано на Вашу email адресу.',
-        )
+        verbose_name='Профіль активований через ел.пошту',
+        help_text='Параметр стає активним, коли користувач підтвердить свою електронну адресу.'
+    )
 
 
 class VillagesOfBershad(models.Model):
