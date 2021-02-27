@@ -47,7 +47,7 @@ class AdvancedUser(AbstractUser):
         validators=[phone_number_validator],
         verbose_name='Номер телефона'
     )
-    village = models.OneToOneField(
+    village = models.ForeignKey(
         to='VillagesOfBershad',
         null=True,
         blank=True,
@@ -65,6 +65,29 @@ class AdvancedUser(AbstractUser):
         default=False,
         verbose_name='Профіль активований через ел.пошту',
         help_text='Параметр стає активним, коли користувач підтвердить свою електронну адресу.'
+    )
+    about_me = models.TextField(
+        null=True,
+        max_length=512,
+        verbose_name='Про себе',
+        help_text='Інформація про вас. Інші користувачі зможуть дізнатись про вас більше.'
+    )
+
+
+class ChangesInUserInformation(models.Model):
+    """
+    Temporarily saving new user data, before changing basic information.
+    The entry will be deleted after the user confirms the action via email.
+    """
+    user = models.OneToOneField(AdvancedUser, on_delete=models.CASCADE)
+    new_first_name = models.CharField(max_length=150, blank=True, verbose_name="Нове ім'я")
+    new_last_name = models.CharField(max_length=150, blank=True, verbose_name="Нова фамілія")
+    new_email = models.EmailField(verbose_name='Нова ел.пошта')
+    new_phone_number = models.CharField(
+        max_length=16,
+        null=True,
+        validators=[phone_number_validator],
+        verbose_name='Номер телефона',
     )
 
 

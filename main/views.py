@@ -1,25 +1,25 @@
-from django.urls import reverse
 from django.urls import reverse_lazy
-from django.core.signing import BadSignature
 from django.contrib import messages
-from django.shortcuts import render
-from django.shortcuts import get_object_or_404
-from django.shortcuts import HttpResponse, HttpResponseRedirect
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.views import LogoutView
-from django.contrib.auth.decorators import login_required
-from django.views.generic import CreateView
-from django.views.generic import UpdateView
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.messages.views import SuccessMessageMixin
+from django.core.signing import BadSignature
+from django.shortcuts import HttpResponseRedirect
+from django.shortcuts import get_object_or_404
+from django.shortcuts import render
+from django.urls import reverse_lazy
 
-from .models import AdvancedUser
-
-from .forms import UserPersonalInformationForm
+from .forms import FirstPersonalInformationForm
+from .forms import SecondPersonalInformationForm
 from .forms import UserRegistrationForm
 
-from .utilities import signer
+from .models import AdvancedUser
+from .models import ChangesInUserInformation
+
 from .utilities import send_activation_notification
+from .utilities import send_confirmation_to_update_personal_information
+from .utilities import signer
 
 
 def main_page(request):
@@ -35,18 +35,103 @@ class UserLogoutView(LoginRequiredMixin, LogoutView):
     next_page = reverse_lazy('main:main_page')
 
 
-class UserPersonalInformationView(SuccessMessageMixin, LoginRequiredMixin, UpdateView):
-    model = AdvancedUser
-    template_name = 'account/user_personal_information.html'
-    success_message = 'Ваша персональна інформація збережена'
-    form_class = UserPersonalInformationForm
+# class user_personal_information(SuccessMessageMixin, LoginRequiredMixin, UpdateView):
+#     model = AdvancedUser
+#     template_name = 'account/user_personal_information.html'
+#     success_message = 'Ваша персональна інформація збережена'
+#     from .forms import UserPersonalInformationForm
+#     form_class = UserPersonalInformationForm
+#
+#     def get_success_url(self):
+#         user = AdvancedUser.objects.get(email=self.request.POST.get('email'))
+#         if user:
+#             return reverse_lazy('main:user_personal_info', kwargs={'slug': user.slug})
+#         else:
+#             return reverse_lazy('main:main_page')
 
-    def get_success_url(self):
-        user = AdvancedUser.objects.get(email=self.request.POST.get('email'))
-        if user:
-            return reverse_lazy('main:user_personal_info', kwargs={'slug': user.slug})
-        else:
-            return reverse_lazy('main:main_page')
+@login_required()
+def user_personal_information(request, **kwargs):
+    user = get_object_or_404(AdvancedUser, username=request.user.username)
+    if request.method == 'POST':
+        if 'first_form' in request.POST:
+            form = FirstPersonalInformationForm(request.POST, instance=user)
+            if form.is_valid():
+                messages.add_message(
+                    request,
+                    level=messages.SUCCESS,
+                    message=f'На електронну адресу ({request.user.email}) відправлений лист для підтвердження.')
+                data = form.cleaned_data
+                temporary_information = ChangesInUserInformation.objects.get_or_create(
+                    user=user)
+                temporary_information[0].new_first_name = data['first_name']
+                temporary_information[0].new_last_name = data['last_name']
+                temporary_information[0].new_email = data['email']
+                temporary_information[0].new_phone_number = data['phone_number']
+                temporary_information[0].save()
+                send_confirmation_to_update_personal_information(user=user)
+
+        elif 'second_form' in request.POST:
+            form = SecondPersonalInformationForm(request.POST, request.FILES, instance=user)
+            if form.is_valid():
+                messages.add_message(
+                    request,
+                    level=messages.SUCCESS,
+                    message='Персональну інформацію було оновлено')
+                form.save()
+    initial_first_form = {
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'email': user.email,
+        'phone_number': user.phone_number
+    }
+    initial_second_form = {
+        'user_image': user.user_image,
+        'village': user.village,
+        'date_of_birth': user.date_of_birth,
+        'about_me': user.about_me
+    }
+    first_form = FirstPersonalInformationForm(initial=initial_first_form)
+    second_form = SecondPersonalInformationForm(initial=initial_second_form)
+    template_name = 'account/user_personal_information.html'
+    context = {
+        'first_form': first_form,
+        'second_form': second_form,
+    }
+    return render(request=request,
+                  template_name=template_name,
+                  context=context)
+
+
+@login_required
+def email_confirm_update_personal_information(request, sign):
+    try:
+        username = signer.unsign(sign)
+    except BadSignature:
+        messages.add_message(
+            request=request,
+            level=messages.ERROR,
+            message='Виникла помилка, посилання не вірне.'
+        )
+        return reverse_lazy('main:main_page')
+    user = get_object_or_404(AdvancedUser, username=username)
+    new_information = ChangesInUserInformation.objects.get(user=user)
+    if new_information:
+        user.first_name = new_information.new_first_name
+        user.last_name = new_information.new_last_name
+        user.email = new_information.new_email
+        user.phone_number = new_information.new_phone_number
+        user.save()
+        messages.add_message(
+            request,
+            level=messages.SUCCESS,
+            message='Персональну інформацію було оновлено')
+    else:
+        messages.add_message(
+            request,
+            level=messages.ERROR,
+            message="Виникла невідома помилка. Будь-ласка, зв'яжіться з "
+                    "адміністрацією сайта для вирішення проблеми.")
+    return HttpResponseRedirect(reverse_lazy('main:user_personal_info', kwargs={'slug': user.slug}))
 
 
 def user_registration(request):
@@ -56,7 +141,6 @@ def user_registration(request):
         new_user = UserRegistrationForm(request.POST)
         if new_user.is_valid():
             new_user.save()
-            # в этом месте отправляем письмо для подтверждения эл.почты
             messages.add_message(
                 request,
                 level=messages.SUCCESS,

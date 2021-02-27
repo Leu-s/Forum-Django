@@ -4,15 +4,45 @@
 
 {% block title %}Особиста інформація {{ user.username }}{% endblock %}
 
+
+
+{#{% block content %}#}
+{##}
+{#    <div class="container">#}
+{#        <h4>Логін (нікнейм): {{ user.username }}</h4>#}
+{#        <hr>#}
+{#        <form method="post" enctype="multipart/form-data">#}
+{#            {% csrf_token %}#}
+{#            {% bootstrap_form form layout='horizontal' %}#}
+{#            {% buttons submit='Зберегти' %}{% endbuttons %}#}
+{#        </form>#}
+{#    </div>#}
+{#{% endblock %}#}
+
+
+
+
 {% block content %}
 
     <div class="container">
-        <h4>Логін (нікнейм): {{ user.username }}</h4>
+        <h4>Персональна інформація користувача {{ user.username }}</h4>
         <hr>
+
+        <h5>Головна інформація</h5>
+        <p style="color: firebrick"><i>Щоб змінити головну інформацію вам потрібно
+            підтвердити свої дії через електронну пошту.</i></p>
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
-            {% bootstrap_form form layout='horizontal' %}
-            {% buttons submit='Зберегти' %}{% endbuttons %}
+            {% bootstrap_form first_form layout='horizontal' %}
+            <button type="submit" class="btn btn-danger" name="first_form">Змінити</button>
+        </form>
+        <hr>
+
+        <h5>Додаткова інформація</h5>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% bootstrap_form second_form layout='horizontal' %}
+            <button type="submit" class="btn btn-primary" name="second_form">Зберегти</button>
         </form>
     </div>
 {% endblock %}

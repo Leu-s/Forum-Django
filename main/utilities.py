@@ -15,15 +15,17 @@ def get_timestamp_path(instance, filename):
 
 signer = Signer()
 
+def set_host():
+    if ALLOWED_HOSTS:
+        return 'http://' + ALLOWED_HOSTS[0]
+    else:
+        return 'http://localhost:8000'
+
 
 def send_activation_notification(user):
-    if ALLOWED_HOSTS:
-        host = 'http://' + ALLOWED_HOSTS[0]
-    else:
-        host = 'http://localhost:8000'
     context = {
         'user': user,
-        'host': host,
+        'host': set_host(),
         'sign': signer.sign(user.username)  # Создание уникальной цифровой подписи пользователя
     }
     subject = render_to_string(
@@ -35,3 +37,21 @@ def send_activation_notification(user):
         context=context,
     )
     user.email_user(subject, body_text)
+
+
+def send_confirmation_to_update_personal_information(user):
+    context = {
+        'user': user,
+        'host': set_host(),
+        'sign': signer.sign(user.username),
+    }
+
+    subject = render_to_string(
+        template_name='email/change_personal_info_subject',
+        context=context
+    )
+    body_text = render_to_string(
+        template_name='email/change_personal_info_body',
+        context=context
+    )
+    user.email_user(subject=subject, message=body_text)
