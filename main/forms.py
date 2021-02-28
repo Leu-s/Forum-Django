@@ -72,25 +72,6 @@ class UserRegistrationForm(forms.ModelForm):
         )
 
 
-# class UserPersonalInformationForm(forms.ModelForm):
-#     class Meta:
-#         model = AdvancedUser
-#         fields = (
-#             'first_name',
-#             'last_name',
-#             'email',
-#             'phone_number',
-#             'village',
-#             'date_of_birth',
-#             'user_image',
-#             'about_me'
-#         )
-#
-#         widgets = {
-#             'date_of_birth': forms.SelectDateWidget(years=available_birth_years()),
-#         }
-
-
 class FirstPersonalInformationForm(forms.ModelForm):
     class Meta:
         model = AdvancedUser
@@ -103,7 +84,6 @@ class FirstPersonalInformationForm(forms.ModelForm):
 
 
 class SecondPersonalInformationForm(forms.ModelForm):
-
     def add_error(self, field, error):
         if field is not None:
             print(f'Error on field {field}: {error}')
@@ -123,3 +103,7 @@ class SecondPersonalInformationForm(forms.ModelForm):
         widgets = {
             'date_of_birth': forms.SelectDateWidget(years=available_birth_years()),
         }
+
+
+class EnterOldPasswordForm(forms.Form):
+    old_email = forms.EmailField(label='Ваш електронний адрес', max_length=150, required=False)

@@ -7,6 +7,8 @@ from .views import user_registration
 from .views import user_activation
 from .views import user_profile
 from .views import email_confirm_update_personal_information
+from .views import user_forgot_his_password
+from .views import UserResetPasswordView
 
 app_name = 'main'
 urlpatterns = [
@@ -15,6 +17,8 @@ urlpatterns = [
     path('accounts/information/<slug:slug>/', user_personal_information, name='user_personal_info'),
     path('accounts/information/change/<str:sign>/', email_confirm_update_personal_information, name='change_personal_info'),
     path('accounts/login/', UserLoginView.as_view(), name='user_login'),
+    path('accounts/login/reset-password/<str:uidb64>/<token>/', UserResetPasswordView.as_view(), name='user_password_reset'),
+    path('accounts/login/forgot-password/', user_forgot_his_password, name='user_forgot_his_password'),
     path('accounts/logout/', UserLogoutView.as_view(), name='user_logout'),
     path('accounts/profile/<slug:slug>/', user_profile, name='user_profile'),
     path('', main_page, name='main_page'),

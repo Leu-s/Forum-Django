@@ -4,21 +4,26 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.views import LogoutView
+from django.contrib.auth.views import PasswordResetConfirmView
 from django.core.signing import BadSignature
 from django.shortcuts import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.urls import reverse_lazy
+from django.db.models import ObjectDoesNotExist
+from django.contrib.auth.forms import PasswordChangeForm
 
 from .forms import FirstPersonalInformationForm
 from .forms import SecondPersonalInformationForm
 from .forms import UserRegistrationForm
+from .forms import EnterOldPasswordForm
 
 from .models import AdvancedUser
 from .models import ChangesInUserInformation
 
 from .utilities import send_activation_notification
 from .utilities import send_confirmation_to_update_personal_information
+from .utilities import send_request_to_change_password
 from .utilities import signer
 
 
@@ -35,49 +40,10 @@ class UserLogoutView(LoginRequiredMixin, LogoutView):
     next_page = reverse_lazy('main:main_page')
 
 
-# class user_personal_information(SuccessMessageMixin, LoginRequiredMixin, UpdateView):
-#     model = AdvancedUser
-#     template_name = 'account/user_personal_information.html'
-#     success_message = 'Ваша персональна інформація збережена'
-#     from .forms import UserPersonalInformationForm
-#     form_class = UserPersonalInformationForm
-#
-#     def get_success_url(self):
-#         user = AdvancedUser.objects.get(email=self.request.POST.get('email'))
-#         if user:
-#             return reverse_lazy('main:user_personal_info', kwargs={'slug': user.slug})
-#         else:
-#             return reverse_lazy('main:main_page')
-
 @login_required()
 def user_personal_information(request, **kwargs):
     user = get_object_or_404(AdvancedUser, username=request.user.username)
-    if request.method == 'POST':
-        if 'first_form' in request.POST:
-            form = FirstPersonalInformationForm(request.POST, instance=user)
-            if form.is_valid():
-                messages.add_message(
-                    request,
-                    level=messages.SUCCESS,
-                    message=f'На електронну адресу ({request.user.email}) відправлений лист для підтвердження.')
-                data = form.cleaned_data
-                temporary_information = ChangesInUserInformation.objects.get_or_create(
-                    user=user)
-                temporary_information[0].new_first_name = data['first_name']
-                temporary_information[0].new_last_name = data['last_name']
-                temporary_information[0].new_email = data['email']
-                temporary_information[0].new_phone_number = data['phone_number']
-                temporary_information[0].save()
-                send_confirmation_to_update_personal_information(user=user)
-
-        elif 'second_form' in request.POST:
-            form = SecondPersonalInformationForm(request.POST, request.FILES, instance=user)
-            if form.is_valid():
-                messages.add_message(
-                    request,
-                    level=messages.SUCCESS,
-                    message='Персональну інформацію було оновлено')
-                form.save()
+    template_name = 'account/user_personal_information.html'
     initial_first_form = {
         'first_name': user.first_name,
         'last_name': user.last_name,
@@ -90,16 +56,47 @@ def user_personal_information(request, **kwargs):
         'date_of_birth': user.date_of_birth,
         'about_me': user.about_me
     }
-    first_form = FirstPersonalInformationForm(initial=initial_first_form)
-    second_form = SecondPersonalInformationForm(initial=initial_second_form)
-    template_name = 'account/user_personal_information.html'
     context = {
-        'first_form': first_form,
-        'second_form': second_form,
+        'first_form': FirstPersonalInformationForm(initial=initial_first_form),
+        'second_form': SecondPersonalInformationForm(initial=initial_second_form),
+        'password_change_form': PasswordChangeForm(user=user, initial=request.POST),
     }
-    return render(request=request,
-                  template_name=template_name,
-                  context=context)
+    if request.method == 'POST':
+        if 'first_form' in request.POST:
+            form = FirstPersonalInformationForm(request.POST, instance=user)
+            if form.is_valid():
+                messages.add_message(
+                    request,
+                    level=messages.SUCCESS,
+                    message=f'На електронну адресу ({request.user.email}) відправлений лист для підтвердження.')
+                data = form.cleaned_data
+                temporary_information = ChangesInUserInformation.objects.get_or_create(user=user)[0]
+                temporary_information.new_first_name = data['first_name']
+                temporary_information.new_last_name = data['last_name']
+                temporary_information.new_email = data['email']
+                temporary_information.new_phone_number = data['phone_number']
+                temporary_information.save()
+                send_confirmation_to_update_personal_information(user=user)
+            context['first_form'] = form
+        elif 'second_form' in request.POST:
+            form = SecondPersonalInformationForm(request.POST, request.FILES, instance=user)
+            if form.is_valid():
+                messages.add_message(
+                    request,
+                    level=messages.SUCCESS,
+                    message='Персональну інформацію було оновлено')
+                form.save()
+            return HttpResponseRedirect(reverse_lazy('main:user_personal_info', kwargs={'slug': user.slug}))
+        elif 'change_password' in request.POST:
+            form = PasswordChangeForm(user=user, data=request.POST)
+            if form.is_valid():
+                messages.add_message(
+                    request,
+                    level=messages.SUCCESS,
+                    message='Ви успішно змінили свій пароль')
+                form.save()
+            context['password_change_form'] = form
+    return render(request=request, template_name=template_name, context=context)
 
 
 @login_required
@@ -121,6 +118,7 @@ def email_confirm_update_personal_information(request, sign):
         user.email = new_information.new_email
         user.phone_number = new_information.new_phone_number
         user.save()
+        new_information.delete()
         messages.add_message(
             request,
             level=messages.SUCCESS,
@@ -130,7 +128,8 @@ def email_confirm_update_personal_information(request, sign):
             request,
             level=messages.ERROR,
             message="Виникла невідома помилка. Будь-ласка, зв'яжіться з "
-                    "адміністрацією сайта для вирішення проблеми.")
+                    "адміністрацією сайта для вирішення проблеми, або"
+                    "спробуйте відправити лист підтверждення ще раз.")
     return HttpResponseRedirect(reverse_lazy('main:user_personal_info', kwargs={'slug': user.slug}))
 
 
@@ -187,6 +186,45 @@ def user_activation(request, sign):
             return HttpResponseRedirect(reverse_lazy('main:user_login'))
 
 
+def user_forgot_his_password(request):
+    if request.user.is_authenticated:
+        return reverse_lazy('main:user_profile')
+    if request.method == 'POST':
+        old_email = request.POST.get('old_email')
+        if old_email:
+            search_user = None
+            try:
+                search_user = AdvancedUser.objects.get(email__icontains=old_email)
+            except ObjectDoesNotExist:
+                messages.add_message(
+                    request=request,
+                    level=messages.ERROR,
+                    message='Користувача з такою електронною поштою не знайдено'
+                )
+                return HttpResponseRedirect(reverse_lazy('main:user_forgot_his_password'))
+            send_request_to_change_password(user=search_user)
+            messages.add_message(
+                request=request,
+                level=messages.SUCCESS,
+                message='На вашу електронну адресу був відправлений лист з інструкцією.'
+            )
+        else:
+            messages.add_message(
+                request=request,
+                level=messages.WARNING,
+                message="Обов'язково необхідно вказати свою електронну адресу."
+            )
+            return HttpResponseRedirect(reverse_lazy('main:user_forgot_his_password'))
+    template = 'account/user_forgot_password.html'
+    context = {'form': EnterOldPasswordForm}
+    return render(request, template, context)
+
+
+class UserResetPasswordView(PasswordResetConfirmView):
+    template_name = 'account/user_password_reset.html'
+    success_url = reverse_lazy('main:user_login')
+
+
 @login_required()
 def user_profile(request, slug):
     template = 'account/user_profile.html'
@@ -203,13 +241,3 @@ def user_profile(request, slug):
         'slug': slug
     }
     return render(request, template, context)
-
-
-
-
-
-
-
-
-
-

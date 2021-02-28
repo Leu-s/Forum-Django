@@ -15,6 +15,7 @@
                 <input type="hidden" name="next" value="{% url 'main:main_page' %}">
                 {% buttons submit='Увійти' %}{% endbuttons %}
             </form>
+            <p><u><a href="{% url 'main:user_forgot_his_password' %}">Відновити пароль</a></u></p>
         {% endif %}
     </div>
 {% endblock %}

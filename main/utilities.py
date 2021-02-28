@@ -1,3 +1,6 @@
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
 from django.template.loader import render_to_string
 from django.core.signing import Signer
 from MyForum.settings import ALLOWED_HOSTS
@@ -14,6 +17,7 @@ def get_timestamp_path(instance, filename):
 
 
 signer = Signer()
+
 
 def set_host():
     if ALLOWED_HOSTS:
@@ -52,6 +56,26 @@ def send_confirmation_to_update_personal_information(user):
     )
     body_text = render_to_string(
         template_name='email/change_personal_info_body',
+        context=context
+    )
+    user.email_user(subject=subject, message=body_text)
+
+
+def send_request_to_change_password(user):
+    token = PasswordResetTokenGenerator()
+    context = {
+        'user': user,
+        'host': set_host(),
+        'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+        'token': token.make_token(user=user),
+    }
+
+    subject = render_to_string(
+        template_name='email/user_forgot_password_subject',
+        context=context
+    )
+    body_text = render_to_string(
+        template_name='email/user_forgot_password_body',
         context=context
     )
     user.email_user(subject=subject, message=body_text)

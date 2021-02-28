@@ -158,7 +158,7 @@ THUMBNAIL_ALIASES = {
 
 # Email settings
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'kramarenko98y@gmail.com'
-EMAIL_HOST_PASSWORD = '529984073Nazar'
+EMAIL_HOST_USER = 'MyLandBershad@gmail.com'
+EMAIL_HOST_PASSWORD = 'wZDf_j_s_XG0t8'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True

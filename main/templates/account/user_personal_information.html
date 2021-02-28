@@ -37,12 +37,21 @@
             <button type="submit" class="btn btn-danger" name="first_form">Змінити</button>
         </form>
         <hr>
-
+        <h5>Зміна паролю</h5>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% bootstrap_form password_change_form layout='horizontal' %}
+            <button type="submit" class="btn btn-warning" name="change_password">Змінити пароль</button>
+        </form>
+        <hr>
         <h5>Додаткова інформація</h5>
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             {% bootstrap_form second_form layout='horizontal' %}
             <button type="submit" class="btn btn-primary" name="second_form">Зберегти</button>
         </form>
+
+
+
     </div>
 {% endblock %}
