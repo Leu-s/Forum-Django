@@ -1,177 +1,71 @@
 {% load static %}
-{% load bootstrap4 %}
 {% load thumbnail %}
+{% load bootstrap4 %}
+
 <!DOCTYPE html>
-<html lang="ru">
-    <head>
-        <meta http-equiv="Content-Type"
-        content="text/html; charset=utf-8">
-        <meta name="viewport"
-        content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <link rel="shortcut icon" type="image/png" href="{% static 'static/favicon.ico' %}"/>
-        <title>{% block title %}Головна{% endblock %} - Мій Край</title>
-        {% bootstrap_css %}
-        <link rel="stylesheet" type="text/css" href="#">
-        {% bootstrap_javascript jquery="slim" %}
-    </head>
-
-    <body class="container-fluid">
-        <header class="mb-4">
-            <div class="container-fluid">
-                <div class="row">
-                    <div class="col nav">
-                        {% if user.is_authenticated %}
-
-                            <ul class="col nav-link">
-                                {% if user.user_image %}
-                                    <div id="avatar">
-                                        <img class="mr-3" src="{% thumbnail user.user_image 'avatar' %}" alt="" />
-                                {% else %}
-                                    <img src="{% static 'static/default.jpg'%}" alt="">
-                                    </div>
-                                {% endif %}
-                                <a class="nav-link" href="#">
-                                    {% if user.first_name and user.last_name %}
-                                        {{ user.first_name }} {{ user.last_name }} ({{user.username}})
-                                    {% else %}
-                                        {{ user.username }}
-                                    {% endif %}
-                                </a>
-                                <a class="nav-link" href="#">Рейтинг: *В розробці*</a>
-                                <li class="nav-item dropdown" style="list-style-type: none">
-                                    <a class="nav-link dropdown-toggle"
-                                        href="#"
-                                        role="button"
-                                        data-toggle="dropdown"
-                                        aria-expanded="false"
-                                        aria-haspopup="true">
-                                        Профіль
-                                    </a>
-                                    <div class="dropdown-menu">
-                                        <a class="dropdown-item" href="{% url 'main:user_profile' slug=user.slug %}">
-                                            Профіль
-                                        </a>
-                                        <a class="dropdown-item" href="#">
-                                            Особисті повідомлення
-                                        </a>
-                                        <a class="dropdown-item" href="#">
-                                            Мої статьї
-                                        </a>
-                                        <a class="dropdown-item" href="#">
-                                            Мої коментарії
-                                        </a>
-                                        <a class="dropdown-item"
-                                           href="{% url 'main:user_personal_info' user.slug %}">
-                                            Редагувати профіль
-                                        </a>
-                                        <div class="dropdown-divider"></div>
-                                        <a class="dropdown-item" href="{% url 'main:user_logout' %}">
-                                            Вихід
-                                        </a>
-                                    </div>
-                                </li>
-                            </ul>
-                        {% else %}
-                            <a class="nav-link" href="{% url "main:user_login" %}">Увійти</a>
-                            <a class="nav-link" href="{% url "main:user_registration" %}">Зареєструватись</a>
-                        {% endif %}
-                    </div>
-
-                    <div class="col-md-auto container-fluid">
-                        <h1 class="display-1 text-right">Мій край</h1>
-                    </div>
-
-                </div>
-            </div>
-        </header>
-
-        <div class="row">
-            <ul class="row nav border-top border-bottom">
-                {% if user.is_authenticated %}
-                    <a class="nav-link" href="#" style="margin-left: 30px">Добавить статью</a>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Головна{% endblock %} - Мій Край</title>
+    <link rel="stylesheet" href="{% static 'static/base_template_stype/base.css' %}">
+</head>
+<body>
+    <div class="header-div-container">
+        <!-- Отображать, если пользователь зарегестрирован -->
+        {% if user.is_authenticated %}
+            <div class="user-info">
+                {% if user.user_image %}
+                    <a href="{% url 'main:user_profile' slug=user.slug %}">
+                        <img id="user-avatar" src="{% thumbnail user.user_image 'avatar' %}" alt="alt-img">
+                    </a>
+                {% else %}
+                    <a href="{% url 'main:user_profile' slug=user.slug %}">
+                        <img src="{% static 'static/default user avatar/default.jpg' %}" alt="alt-img">
+                    </a>
                 {% endif %}
-                <a  class="nav-link" href="{% url 'main:main_page' %}">Головна</a>
-            </ul>
-            <ul class="col nav justify-content-end border-top border-bottom">
-                <form class="form-inline" method="post">
-                    {% csrf_token %}
-                    <label>
-                        <input class="form-control" type="text" placeholder="Поиск...">
-                    </label>
-                    <button class="btn btn-outline-success" type="submit">Найти</button>
-                </form>
-            </ul>
-        </div>
-
-        <div class="row border-bottom">
-            <div class="col-md-auto">
-                <ul style="margin-left: 0; padding-left: 0">
-                    <li class="nav-item dropdown dropright" style="list-style-type: none">
-                        <a class="nav-link dropdown-toggle"
-                           href="#"
-                           data-toggle="dropdown"
-                           aria-haspopup="true"
-                           aria-expanded="false">
-                            Назва категорії
-                        </a>
-                        <div class="dropdown-menu">
-
-                            <a class="dropdown-item"
-                               href="#">
-                                Підкатегорія
-                            </a>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-
-            <section class="col border-left py-2">
-                {% bootstrap_messages %}
-                {% block content %}
-                {% endblock %}
-            </section>
-
-            <div class="col-md-auto border-left">
-                <h3>Гарячі новини</h3>
-                <ul>
-                    <li>Первая новость</li>
-                    <li>Вторая новость</li>
-                    <li>Третья новость</li>
-                </ul>
-
-                <h3>Останні коментарії</h3>
-                <ul>
-                    <li>Первый комментарий</li>
-                    <li>Второй комментарий</li>
-                    <li>Третий комментарий</li>
-                </ul>
-
-                <h3>Рекламний блок</h3>
-                <ul>
-                    <li>Продам хату</li>
-                    <li>Куплю свиней</li>
-                    <li>Продам дрова</li>
-                </ul>
-            </div>
-
-        </div>
-        <footer class="mt-3">
-            <div class="table">
-                <div class="row">
-                    <div class="col">
-                        <a class="nav-link" href="#">О нас</a>
-                        <a class="nav-link" href="#">Заказать рекламу</a>
-                        <a class="nav-link" href="#">Пользовательское соглашение</a>
-                    </div>
-                    <div class="col">
-                        <a class="nav-link" href="#">Инстаграмм</a>
-                        <a class="nav-link" href="#">Фейсбук</a>
-                        <a class="nav-link">mail@mail.com</a>
-                    </div>
+                <div id="user-buttons-block">
+                    <ul class="user-header-menu">
+                        <li class="user-header-menu-item" id="user-nickname">@{{ user.username }}</li>
+                        <li class="user-header-menu-item" id="user-name">
+                            {% if user.first_name and user.last_name %}
+                                {{ user.first_name }} {{ user.last_name }}
+                            {% elif user.first_name %}
+                                {{ user.first_name }}
+                            {% else %}
+                                {{ user.email }}
+                            {% endif %}
+                        </li>
+                        <li class="user-header-menu-item" id="user-rating">Рейтинг +415</li>
+                        <li class="user-menu-divider"></li>
+                        <li><a href="{% url 'main:user_profile' slug=user.slug %}" class="user-header-menu-down">
+                            <i class="arrow-down"></i> Профіль</a>
+                            <ul class="user-header-submenu">
+                                <li><a href="#">Особисті повідомлення</a></li>
+                                <li><a href="#">Мої статьї</a></li>
+                                <li><a href="#">Мої комментарії</a></li>
+                                <li><a href="{% url 'main:user_personal_info' user.slug %}">Редагувати профіль</a></li>
+                                <li class="user-menu-divider"></li>
+                                <li><a href="{% url 'main:user_logout' %}">Вихід</a></li>
+                            </ul>
+                        </li>
+                    </ul>
                 </div>
             </div>
-            <hr>
-            <p class="text-right font-italic">Киевстар: +380123456789; МТС: +380987654321</p>
-        </footer>
-    </body>
+        {% else %}
+            <div class="user-info-not-auth">АВТОРИЗИРУЙСЯ</div>
+        {% endif %}
+        <div class="header-title">
+            <p><a href="{% url 'main:main_page' %}">Мій край</a></p>
+        </div>
+        <div class="header-logo"><p id="header-logo-p">
+            <a href="{% url 'main:main_page' %}">
+                <img id="logo-header" src="{% static 'static/base_template_stype/header/logo_header.png' %}" alt="logo">
+            </a>
+        </div>
+    </div>
+    <div id="main">
+        {% block content %}
+        {% endblock %}
+    </div>
+</body>
 </html>
