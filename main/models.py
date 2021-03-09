@@ -80,8 +80,8 @@ class ChangesInUserInformation(models.Model):
     The entry will be deleted after the user confirms the action via email.
     """
     user = models.OneToOneField(AdvancedUser, on_delete=models.CASCADE)
-    new_first_name = models.CharField(max_length=150, blank=True, verbose_name="Нове ім'я")
-    new_last_name = models.CharField(max_length=150, blank=True, verbose_name="Нова фамілія")
+    new_first_name = models.CharField(max_length=150, blank=True, null=True, verbose_name="Нове ім'я")
+    new_last_name = models.CharField(max_length=150, blank=True, null=True, verbose_name="Нова фамілія")
     new_email = models.EmailField(verbose_name='Нова ел.пошта')
     new_phone_number = models.CharField(
         max_length=16,
@@ -104,5 +104,19 @@ class VillagesOfBershad(models.Model):
         verbose_name_plural = 'Населені пункти'
 
 
+class Article(models.Model):
+    slug = AutoSlugField(populate_from='title', db_index=True)
+    author = models.ForeignKey(AdvancedUser, on_delete=models.CASCADE, verbose_name='Автор')
+    title = models.CharField(max_length=128, unique=True, verbose_name='Заголовок')
+    content = models.TextField(max_length=2500, verbose_name='Стаття')
+    published = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name='Дата публікації')
+
+    class Meta:
+        ordering = ['-published']
+        verbose_name = 'Стаття'
+        verbose_name_plural = 'Статті'
+
+    def __str__(self):
+        return self.title
 
 

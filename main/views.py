@@ -19,6 +19,7 @@ from .forms import SecondPersonalInformationForm
 from .forms import UserRegistrationForm
 from .models import AdvancedUser
 from .models import ChangesInUserInformation
+from .models import Article
 from .utilities import send_activation_notification
 from .utilities import send_confirmation_to_update_personal_information
 from .utilities import send_request_to_change_password
@@ -26,7 +27,11 @@ from .utilities import signer
 
 
 def main_page(request):
-    return render(request, 'articles/main_page.html')
+    template = 'articles/main_page.html'
+    context = {'articles': Article.objects.all()}
+    return render(request, 'articles/main_page.html',
+                 context=context
+                  )
 
 
 class UserLoginView(LoginView):
@@ -272,19 +277,24 @@ class UserResetPasswordView(PasswordResetConfirmView):
     success_url = reverse_lazy('main:user_login')
 
 
-@login_required()
-def user_profile(request, slug):
-    template = 'account/user_profile.html'
-    if request.method == 'POST':
-        if 'send_email' in request.POST:
+class ProfileView(TemplateView):
+    template_name = 'account/user_profile.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        slug = self.kwargs.get('slug')
+        profile_data = get_object_or_404(AdvancedUser, slug=slug)
+        context['slug'] = slug
+        context['profile_data'] = profile_data
+        return context
+
+    def post(self, *args, **kwargs):
+        if 'send_email' in self.request.POST:
             messages.add_message(
-                request=request,
+                request=self.request,
                 level=messages.SUCCESS,
                 message='Лист з даними для підтвердження профілю було відправлено.'
             )
-            user = AdvancedUser.objects.get(username=request.user.username)
+            user = AdvancedUser.objects.get(username=self.request.user.username)
             send_activation_notification(user=user)
-    context = {
-        'slug': slug
-    }
-    return render(request, template, context)
+

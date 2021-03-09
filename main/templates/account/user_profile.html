@@ -1,13 +1,23 @@
 {% extends 'base/base.html' %}
 {% load bootstrap4 %}
-{% block title %}{{ user.username }} - профіль - МійКрай{% endblock %}
+{% block title %}{{ profile_data.username }} - профіль - МійКрай{% endblock %}
 
 {% block content %}
-    <h1>Профіль користувача {{ user.username }}</h1>
-    {% if not user.is_activated %}
-        <form method="post">
-            {% csrf_token %}
-            <button class="btn-primary" type="submit" name="send_email">Надіслати лист активації</button>
-        </form>
+    <div class="profile-info-container">
+
+        <p>{{ profile_data.username }}</p>
+        <p>{{ profile_data.first_name }} {{ profile_data.last_name }}</p>
+        <p>{{ profile_data.village }}</p>
+        <p>{{ profile.data.date_of_birth }}</p>
+        <p>{{ profile_data.about_me }}</p>
+
+    </div>
+    {% if profile_data == user %}
+        {% if not user.is_activated %}
+            <form method="post">
+                {% csrf_token %}
+                <button class="btn-primary" type="submit" name="send_email">Надіслати лист активації</button>
+            </form>
+        {% endif %}
     {% endif %}
 {% endblock %}

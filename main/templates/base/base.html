@@ -2,16 +2,22 @@
 {% load thumbnail %}
 {% load bootstrap4 %}
 
+
 <!DOCTYPE html>
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}Головна{% endblock %} - Мій Край</title>
     <link rel="stylesheet" href="{% static 'static/base_template_stype/base.css' %}">
+
+    {% bootstrap_css %}
+    {% bootstrap_javascript jquery="slim" %}
+
 </head>
-<body>
+<body id="body">
+    <!-- Шапка сайта -->
     <div class="header-div-container">
-        <!-- Отображать, если пользователь зарегестрирован -->
+        <!-- Отображать, если пользователь авторизирован -->
         {% if user.is_authenticated %}
             <div class="user-info">
                 {% if user.user_image %}
@@ -36,7 +42,6 @@
                             {% endif %}
                         </li>
                         <li class="user-header-menu-item" id="user-rating">Рейтинг +415</li>
-                        <li class="user-menu-divider"></li>
                         <li><a href="{% url 'main:user_profile' slug=user.slug %}" class="user-header-menu-down">
                             <i class="arrow-down"></i> Профіль</a>
                             <ul class="user-header-submenu">
@@ -52,10 +57,22 @@
                 </div>
             </div>
         {% else %}
-            <div class="user-info-not-auth">АВТОРИЗИРУЙСЯ</div>
+            <!-- Отображать, если пользователь не авторизирован -->
+            <div class="user-info-not-auth">
+                <p id="user-info-login-btn"><a id="login-button-a" href="{% url "main:user_login" %}">Увійти</a></p>
+                <p id="user-info-reg-btn" class="reg-btn-p">
+                    <a class="reg-btn-link-a" href="{% url "main:user_registration" %}" id="reg-button-a">
+                        Зареєструватись
+                    </a>
+                </p>
+            </div>
         {% endif %}
         <div class="header-title">
-            <p><a href="{% url 'main:main_page' %}">Мій край</a></p>
+            <p id="header-title-p">
+                <a id="header-title-a" href="{% url 'main:main_page' %}">
+                <img src="{% static '/static/base_template_stype/header/logo-title.png' %}" alt="logo">
+                </a>
+            </p>
         </div>
         <div class="header-logo"><p id="header-logo-p">
             <a href="{% url 'main:main_page' %}">
@@ -63,9 +80,43 @@
             </a>
         </div>
     </div>
-    <div id="main">
-        {% block content %}
-        {% endblock %}
+
+    <!-- Строка навигации с кнопками и поископ под шапкой -->
+    <div class="nav-buttons-line">
+        <div class="nav-line-buttons-container">
+            <p id="main-page-btn" class="nav-line-buttons-p"><a href="{% url 'main:main_page' %}">На головну</a></p>
+            <p id="create-article-btn"><a href="#">Створити статью</a></p>
+        </div>
+        <div class="nav-line-search-container">
+            <form class="nav-line-search-line-container" method="get">
+                {% csrf_token %}
+                <button id="search-button" type="submit" name="search_btn">Знайти</button>
+                <input id="search-line" type="search" placeholder="Пошук по сайту" name="search_field">
+            </form>
+        </div>
+    </div>
+
+    <!-- Главная часть страницы -->
+    <div class="div-container-main" id="main">
+        <div class="left-main-block" id="main-left-menu">
+            <p>First</p>
+            <p>Second</p>
+            <p>Third</p>
+            <p>...</p>
+        </div>
+        <div class="center-main-block" id="main-content">
+            {% bootstrap_messages %}
+            {% block content %}
+            {% endblock %}
+        </div>
+        <div class="right-main-block" id="main-right-menu">
+            <p>the last changes</p>
+            <p>most popular comments</p>
+            <p>advertising</p>
+        </div>
+    </div>
+    <div class="div-footer">
+
     </div>
 </body>
 </html>
