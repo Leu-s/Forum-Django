@@ -12,6 +12,7 @@ from django.shortcuts import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.urls import reverse_lazy
+from django.db.models import Q
 
 from .forms import EnterOldPasswordForm
 from .forms import FirstPersonalInformationForm
@@ -20,18 +21,11 @@ from .forms import UserRegistrationForm
 from .models import AdvancedUser
 from .models import ChangesInUserInformation
 from .models import Article
+from .models import Category
 from .utilities import send_activation_notification
 from .utilities import send_confirmation_to_update_personal_information
 from .utilities import send_request_to_change_password
 from .utilities import signer
-
-
-def main_page(request):
-    template = 'articles/main_page.html'
-    context = {'articles': Article.objects.all()}
-    return render(request, 'articles/main_page.html',
-                 context=context
-                  )
 
 
 class UserLoginView(LoginView):
@@ -298,3 +292,69 @@ class ProfileView(TemplateView):
             user = AdvancedUser.objects.get(username=self.request.user.username)
             send_activation_notification(user=user)
 
+
+###################
+
+
+def main_page(request):
+    template = 'articles/main_page.html'
+    context = {'articles': Article.objects.all()}
+    return render(request, 'articles/main_page.html',
+                  context=context)
+
+
+class CategoryView(TemplateView):
+    template_name = 'articles/category.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        categories = self.get_subcategories(slug=self.kwargs.get('slug'))
+        articles = self.collect_articles_from_categories(categories=categories)
+        context['articles'] = articles
+        return context
+
+    @staticmethod
+    def get_subcategories(slug):
+        """
+        The method returns a list of subcategories,
+        from the specified category.
+
+        :param slug: The 'slug' of main category from which the
+                     search will begin subcategories.
+        :return: The list that includes the category and its subcategories.
+        """
+        def recursion(start_category):
+            if start_category.child_category:
+                for sub_category in start_category.child_category.all():
+                    categories.append(sub_category)
+                    if sub_category.child_category:
+                        recursion(sub_category)
+                else:
+                    return categories
+        categories = []
+        start_category = Category.objects.get(slug=slug)
+        recursion(start_category)
+        categories.append(start_category)
+        return categories
+
+    @staticmethod
+    def collect_articles_from_categories(categories: list):
+        """
+        The function returns a QuerySet which contains all
+        articles that are in the specified categories
+
+        example:
+            Category_1 > Category_2 > Category_3 > Category_4
+
+            If the list 'categories' contains [Category_2, Category_3, Category_4]
+            Three QuerySets will be created and combined into one,
+            which will contain all articles.
+
+        :param categories: List containing categories from which to take articles
+        :return: QuerySet
+        """
+        articles_queryset = Category.objects.none()
+        for category in categories:
+            queryset = Article.objects.filter(Q(category__slug=category.slug))
+            articles_queryset = articles_queryset.union(queryset)
+        return articles_queryset

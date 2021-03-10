@@ -5,7 +5,17 @@ from django.template.loader import render_to_string
 from django.core.signing import Signer
 from MyForum.settings import ALLOWED_HOSTS
 from os.path import splitext
+from slugify import slugify
+from transliterate import translit, exceptions
 import datetime
+
+
+def slugify_function(text: str):
+    try:
+        text = translit(text, reversed=True)
+    except exceptions.LanguageDetectionError as error:
+        print(error)
+    return slugify(text)
 
 
 def available_birth_years(min_year=1900):

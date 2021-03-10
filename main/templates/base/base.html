@@ -8,6 +8,7 @@
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}Головна{% endblock %} - Мій Край</title>
+    <link rel="shortcut icon" type="image/png" href="{% static 'static/icon/favicon.ico' %}"/>
     <link rel="stylesheet" href="{% static 'static/base_template_stype/base.css' %}">
 
     {% bootstrap_css %}
@@ -99,10 +100,13 @@
     <!-- Главная часть страницы -->
     <div class="div-container-main" id="main">
         <div class="left-main-block" id="main-left-menu">
-            <p>First</p>
-            <p>Second</p>
-            <p>Third</p>
-            <p>...</p>
+
+            <ul>
+                {% for category in categories %}
+                    {% include 'base/recursive_menu/recursive_menu.html' %}
+                {% endfor %}
+            </ul>
+
         </div>
         <div class="center-main-block" id="main-content">
             {% bootstrap_messages %}

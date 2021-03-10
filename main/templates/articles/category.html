@@ -1,0 +1,38 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% load thumbnail %}
+
+{% block title %}Головна{% endblock %}
+
+{% block content %}
+
+
+    {% for article in articles %}
+        {% ifchanged article.category %}
+            <p>{{ article.category }}</p>
+        {% endifchanged %}
+        <div class="div-article-container">
+            <div class="article-head">
+                <p class="article-user-icon-p">
+                    {% if article.author.user_image %}
+                        <a href="{% url 'main:user_profile' slug=article.author.slug %}">
+                            <img class="article-user-icon" src="{% thumbnail article.author.user_image 'avatar' %}" alt="alt-img">
+                        </a>
+                    {% else %}
+                        <a href="{% url 'main:user_profile' slug=article.author.slug %}">
+                            <img class="article-user-icon" src="{% static 'static/default user avatar/default.jpg' %}" alt="alt-img">
+                        </a>
+                    {% endif %}
+                </p>
+                <p class="article-user-nickname">@{{ article.author.username }}</p>
+                <p class="article-published">{{ article.published }}</p>
+            </div>
+            <div class="article-title">
+                <h1>{{ article.title }}</h1>
+            </div>
+            <div class="article-body">
+                <p>{{ article.content }}</p>
+            </div>
+        </div>
+    {% endfor %}
+{% endblock %}

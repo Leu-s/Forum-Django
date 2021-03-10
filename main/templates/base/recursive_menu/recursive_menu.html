@@ -1,0 +1,14 @@
+{% load static %}
+
+<li>
+    <a href="{% url 'main:category' slug=category.slug %}">{{ category.title }}</a>
+    <ul>
+        {% if category.child_category %}
+            {% for child in category.child_category.all %}
+                {% with category=child  %}
+                    {% include 'base/recursive_menu/recursive_menu.html' %}
+                {% endwith %}
+            {% endfor %}
+        {% endif %}
+    </ul>
+</li>

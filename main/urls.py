@@ -1,15 +1,16 @@
 from django.urls import path
-from .views import main_page
 from .views import UserLoginView
 from .views import UserLogoutView
 from .views import UserPersonalInformationView
-
 from .views import user_registration
 from .views import user_activation
 from .views import ProfileView
 from .views import email_confirm_update_personal_information
 from .views import user_forgot_his_password
 from .views import UserResetPasswordView
+from .views import main_page
+from .views import CategoryView
+
 
 app_name = 'main'
 urlpatterns = [
@@ -22,5 +23,6 @@ urlpatterns = [
     path('accounts/login/forgot-password/', user_forgot_his_password, name='user_forgot_his_password'),
     path('accounts/logout/', UserLogoutView.as_view(), name='user_logout'),
     path('accounts/profile/<slug:slug>/', ProfileView.as_view(), name='user_profile'),
+    path('category/<str:slug>/', CategoryView.as_view(), name='category'),
     path('', main_page, name='main_page'),
 ]

@@ -7,6 +7,8 @@ from .validators import date_of_birth_validator
 from .validators import username_validator
 from .utilities import get_timestamp_path
 from .utilities import send_activation_notification
+from .utilities import slugify_function
+import re
 
 user_registrated = Signal(providing_args=['instance'])
 
@@ -105,11 +107,37 @@ class VillagesOfBershad(models.Model):
 
 
 class Article(models.Model):
-    slug = AutoSlugField(populate_from='title', db_index=True)
-    author = models.ForeignKey(AdvancedUser, on_delete=models.CASCADE, verbose_name='Автор')
-    title = models.CharField(max_length=128, unique=True, verbose_name='Заголовок')
-    content = models.TextField(max_length=2500, verbose_name='Стаття')
-    published = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name='Дата публікації')
+    slug = AutoSlugField(
+        populate_from='title',
+        db_index=True,
+        slugify_function=slugify_function
+    )
+    author = models.ForeignKey(
+        AdvancedUser,
+        on_delete=models.CASCADE,
+        verbose_name='Автор'
+    )
+    title = models.CharField(
+        max_length=128,
+        unique=True,
+        verbose_name='Заголовок'
+    )
+    content = models.TextField(
+        max_length=2500,
+        verbose_name='Стаття'
+    )
+    published = models.DateTimeField(
+        auto_now_add=True,
+        db_index=True,
+        verbose_name='Дата публікації'
+    )
+    category = models.ForeignKey(
+        to='Category',
+        default=None,
+        on_delete=models.PROTECT,
+        db_index=True,
+        verbose_name='Категорія'
+    )
 
     class Meta:
         ordering = ['-published']
@@ -118,5 +146,28 @@ class Article(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Category(models.Model):
+    parent = models.ForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        related_name='child_category',
+        on_delete=models.PROTECT
+    )
+    title = models.CharField(max_length=50, verbose_name='Назва')
+    slug = AutoSlugField(populate_from='title', slugify_function=slugify_function)
+
+    def __str__(self):
+        name = f'{self.parent}/{self.title}'
+        return re.sub('None/', '', name)
+
+    class Meta:
+        verbose_name = 'Категорія'
+        verbose_name_plural = 'Категорії'
+        ordering = ['title']
+
+
 
 
